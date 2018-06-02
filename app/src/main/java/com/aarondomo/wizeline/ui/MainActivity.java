@@ -18,6 +18,9 @@ import android.view.MenuItem;
 import android.widget.FrameLayout;
 
 import com.aarondomo.wizeline.R;
+import com.aarondomo.wizeline.ui.fragments.HomeFragment;
+import com.aarondomo.wizeline.ui.fragments.NewTeamFragment;
+import com.aarondomo.wizeline.ui.fragments.RegisterUserFragment;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -108,9 +111,9 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_live_standup) {
-
-//        } else if (id == R.id.nav_gallery) {
+        if (id == R.id.nav_home) {
+            displayNewFragment(new HomeFragment());
+        } else if (id == R.id.nav_live_standup) {
 //
 //        } else if (id == R.id.nav_slideshow) {
 //
