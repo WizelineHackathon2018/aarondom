@@ -19,6 +19,7 @@ import android.widget.FrameLayout;
 
 import com.aarondomo.wizeline.R;
 import com.aarondomo.wizeline.ui.fragments.HomeFragment;
+import com.aarondomo.wizeline.ui.fragments.LiveStandUpFragment;
 import com.aarondomo.wizeline.ui.fragments.NewTeamFragment;
 import com.aarondomo.wizeline.ui.fragments.RegisterUserFragment;
 
@@ -42,6 +43,8 @@ public class MainActivity extends AppCompatActivity
         setUpNavigationDrawer();
 
         setUpFragmentContainter();
+
+        displayNewFragment(new HomeFragment());
 
     }
 
@@ -114,7 +117,8 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_home) {
             displayNewFragment(new HomeFragment());
         } else if (id == R.id.nav_live_standup) {
-//
+            displayNewFragment(new LiveStandUpFragment());
+
 //        } else if (id == R.id.nav_slideshow) {
 //
 //        } else if (id == R.id.nav_manage) {
