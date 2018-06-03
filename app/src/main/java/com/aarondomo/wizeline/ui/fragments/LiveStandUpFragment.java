@@ -2,9 +2,12 @@ package com.aarondomo.wizeline.ui.fragments;
 
 import android.graphics.Color;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,12 +17,25 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aarondomo.wizeline.R;
+import com.aarondomo.wizeline.model.Minute;
 import com.aarondomo.wizeline.ui.OnSpeakOut;
 import com.aarondomo.wizeline.utils.ScrumCoordinator;
+import com.aarondomo.wizeline.utils.Utils;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class LiveStandUpFragment extends Fragment {
@@ -30,14 +46,45 @@ public class LiveStandUpFragment extends Fragment {
     private TextView timer;
 
     private Button stop;
+    private Button saveMinuteButton;
 
     private MediaRecorder audioMediaRecorder = new MediaRecorder();
+    private String pathForAudio;
+    private String audiofile;
 
     private ScrumCoordinator scrumCoordinator;
 
     private OnSpeakOut textToSpeech;
 
     private CountDownTimer countDownTimer;
+
+    private FirebaseDatabase database;
+    private DatabaseReference minuteDbReference;
+
+    private StorageReference storageReference;
+
+    private Date today = new Date();
+
+    private Map<String, String> audioMap = new HashMap<>();
+    private Minute minute = new Minute();
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        initDB();
+
+    }
+
+    private void initDB(){
+        //Cloud Database
+
+        database = FirebaseDatabase.getInstance();
+        minuteDbReference = database.getReference();
+
+        //Cloud Storage
+        storageReference = FirebaseStorage.getInstance().getReference();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -48,6 +95,8 @@ public class LiveStandUpFragment extends Fragment {
         startStandUp = view.findViewById(R.id.button_start_standup);
         speaker = view.findViewById(R.id.textview_member_speaking);
         timer = view.findViewById(R.id.textview_timer);
+        saveMinuteButton = view.findViewById(R.id.save_minute);
+
 
         //Audio Recording
         stop = (Button) view.findViewById(R.id.stop);
@@ -75,13 +124,17 @@ public class LiveStandUpFragment extends Fragment {
 
     private void setUpButtonListeners() {
         stop.setEnabled(false);
+        saveMinuteButton.setEnabled(false);
 
         startStandUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 speaker.setVisibility(View.VISIBLE);
                 timer.setVisibility(View.VISIBLE);
+                stop.setVisibility(View.VISIBLE);
                 nextParticipant();
+                startStandUp.setVisibility(View.GONE);
+
             }
         });
 
@@ -92,11 +145,27 @@ public class LiveStandUpFragment extends Fragment {
                 nextParticipant();
             }
         });
+
+        saveMinuteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                saveMinute();
+                saveMinuteButton.setEnabled(false);
+                saveMinuteButton.setVisibility(View.GONE);
+            }
+        });
     }
 
 
     private String startAudioRecord(String user){
-        String audiofile = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + user + "_" + UUID.randomUUID() + ".3gp";
+        pathForAudio = Environment.getExternalStorageDirectory().getAbsolutePath() + "/";
+        audiofile = pathForAudio
+                + user
+                + "_"
+                + Utils.getFormattedDate(today)
+                + "_"
+                + UUID.randomUUID().toString().substring(1,8)
+                + ".3gp";
         audioMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         audioMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         audioMediaRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
@@ -121,6 +190,7 @@ public class LiveStandUpFragment extends Fragment {
         audioMediaRecorder.reset();
         stop.setEnabled(false);
         Toast.makeText(getContext(), "Audio Recorder stopped", Toast.LENGTH_SHORT).show();
+        uploadFile();
     }
 
     @Override
@@ -146,8 +216,24 @@ public class LiveStandUpFragment extends Fragment {
             speaker.setText(next);
             startAudioRecord(next);
             startTimer();
+        } else {
+            stop.setVisibility(View.GONE);
+            saveMinuteButton.setVisibility(View.VISIBLE);
+            speakOut("Ok que comience el post");
+            saveMinuteButton.setEnabled(true);
         }
     }
+
+    private void saveMinute() {
+
+        minute.setDate(Utils.getFormattedDate(today));
+        minute.setHour(Utils.getFormattedHour(today));
+        minute.setUserUpdate(audioMap);
+
+        minuteDbReference.child("team_minutes").push().setValue(minute);
+    }
+
+
 
     private void startTimer(){
         countDownTimer = new CountDownTimer(10000, 1000) {
@@ -163,7 +249,8 @@ public class LiveStandUpFragment extends Fragment {
             }
             public void onFinish() {
                 timer.setBackgroundColor(Color.RED);
-                timer.setText("Hey!, que tal un POST stand up");
+                timer.setText("Hey!, POST stand up");
+                timer.setTextColor(Color.WHITE);
             }
         }.start();
     }
@@ -171,6 +258,33 @@ public class LiveStandUpFragment extends Fragment {
 
     private void speakOut(final String speech){
         textToSpeech.onSpeak(speech);
+    }
+
+    private void uploadFile(){
+        Uri file = Uri.fromFile(new File(audiofile));
+        String filename = audiofile.replace(pathForAudio, "");
+        final String[] teamMember = filename.split("_");
+        StorageReference audioMinutes = storageReference.child("minutes/" + "team/" + filename);
+
+        audioMinutes.putFile(file)
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        // Get a URL to the uploaded content
+                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                        if (teamMember[0].equals("post")) {
+                            minute.setPost(downloadUrl.toString());
+                        } else {
+                            audioMap.put(teamMember[0], downloadUrl.toString());
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception exception) {
+                        // Handle unsuccessful uploads
+                    }
+                });
     }
 
 

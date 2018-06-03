@@ -1,0 +1,59 @@
+{
+  "project_info": {
+    "project_number": "518427828516",
+    "firebase_url": "https://wizeline-13c8a.firebaseio.com",
+    "project_id": "wizeline-13c8a",
+    "storage_bucket": "wizeline-13c8a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:518427828516:android:b973067647370753",
+        "android_client_info": {
+          "package_name": "com.aarondomo.wizeline"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "518427828516-b7s148jcom3gqmdh6gf25jg6oq4nc4et.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aarondomo.wizeline",
+            "certificate_hash": "f99ca58722797036d1945e2a59773eb5d4198f44"
+          }
+        },
+        {
+          "client_id": "518427828516-iog0jnvq76pde7rf6v8ef4j32h9pdc06.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "518427828516-iog0jnvq76pde7rf6v8ef4j32h9pdc06.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAUIpJVwQjIRSWpAwJLrSkPjLPS_vkvvpk"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "518427828516-iog0jnvq76pde7rf6v8ef4j32h9pdc06.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
