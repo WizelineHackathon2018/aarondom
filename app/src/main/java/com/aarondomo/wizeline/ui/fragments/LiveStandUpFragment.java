@@ -69,6 +69,8 @@ public class LiveStandUpFragment extends Fragment {
     private Map<String, String> audioMap = new HashMap<>();
     private Minute minute = new Minute();
 
+    private int testInt = 0;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -117,9 +119,15 @@ public class LiveStandUpFragment extends Fragment {
     private List<String> getMembers(){
         List<String> users = new ArrayList<>();
 
-        users.add("Juan");
-        users.add("Pedro");
+        users.add("Superman");
+        users.add("Batman");
         users.add("Paco");
+        users.add("Maria");
+        users.add("Peter");
+        users.add("Gibran");
+        users.add("Wendy");
+        users.add("Andrea");
+        users.add("Hugo");
 
         return users;
     }
@@ -214,12 +222,13 @@ public class LiveStandUpFragment extends Fragment {
             countDownTimer.cancel();
             countDownTimer = null;
         }
-        if (scrumCoordinator.hasNext()) {
+        if (scrumCoordinator.hasNext() && testInt < 3 ) {
             String next = scrumCoordinator.getNextToSpeak();
             speakOut("Tu turno, " + next);
             speaker.setText(next);
             startAudioRecord(next);
             startTimer();
+            testInt++;
         } else {
             stop.setVisibility(View.GONE);
             saveMinuteButton.setVisibility(View.VISIBLE);
