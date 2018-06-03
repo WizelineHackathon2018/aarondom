@@ -1,7 +1,9 @@
 package com.aarondomo.wizeline.ui.fragments;
 
+import android.graphics.Color;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -34,6 +36,8 @@ public class LiveStandUpFragment extends Fragment {
     private ScrumCoordinator scrumCoordinator;
 
     private OnSpeakOut textToSpeech;
+
+    private CountDownTimer countDownTimer;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -132,12 +136,36 @@ public class LiveStandUpFragment extends Fragment {
 
 
     private void nextParticipant() {
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+            countDownTimer = null;
+        }
         if (scrumCoordinator.hasNext()) {
             String next = scrumCoordinator.getNextToSpeak();
             speakOut("Tu turno, " + next);
             speaker.setText(next);
             startAudioRecord(next);
+            startTimer();
         }
+    }
+
+    private void startTimer(){
+        countDownTimer = new CountDownTimer(10000, 1000) {
+
+            public void onTick(long millisUntilFinished) {
+                long remainingTime = millisUntilFinished / 1000;
+                if (remainingTime < 7) {
+                    timer.setBackgroundColor(Color.YELLOW);
+                } else {
+                    timer.setBackgroundColor(Color.GREEN);
+                }
+                timer.setText("" + remainingTime);
+            }
+            public void onFinish() {
+                timer.setBackgroundColor(Color.RED);
+                timer.setText("Hey!, que tal un POST stand up");
+            }
+        }.start();
     }
 
 

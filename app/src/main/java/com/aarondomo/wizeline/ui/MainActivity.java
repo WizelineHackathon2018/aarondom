@@ -18,6 +18,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import com.aarondomo.wizeline.R;
 import com.aarondomo.wizeline.ui.fragments.HomeFragment;
@@ -29,7 +30,7 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        TextToSpeech.OnInitListener, LiveStandUpFragment.OnSpeakOut {
+        TextToSpeech.OnInitListener, OnSpeakOut {
 
     private Toolbar toolbar;
     private FrameLayout fragmentContainer;
@@ -61,6 +62,7 @@ public class MainActivity extends AppCompatActivity
         textToSpeech = new TextToSpeech(getApplicationContext(), this);
 
     }
+
 
     private void setUpFragmentContainter(){
         fragmentContainerId = R.id.fragment_container;
@@ -166,11 +168,11 @@ public class MainActivity extends AppCompatActivity
                     || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Log.e("TTS", "Language is not supported");
             }
+            Log.d("TTS","Text to speech warm and ready!");
         } else {
             Log.e("TTS", "Initilization Failed");
         }
     }
-
 
     @Override
     public void onSpeak(String speech) {
