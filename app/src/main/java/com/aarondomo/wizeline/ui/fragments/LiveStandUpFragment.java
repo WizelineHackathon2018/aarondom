@@ -44,6 +44,7 @@ public class LiveStandUpFragment extends Fragment {
     private TextView speaker;
 
     private TextView timer;
+    private TextView audioStatus;
 
     private Button stop;
     private Button saveMinuteButton;
@@ -95,6 +96,7 @@ public class LiveStandUpFragment extends Fragment {
         startStandUp = view.findViewById(R.id.button_start_standup);
         speaker = view.findViewById(R.id.textview_member_speaking);
         timer = view.findViewById(R.id.textview_timer);
+        audioStatus = view.findViewById(R.id.textview_audio_status);
         saveMinuteButton = view.findViewById(R.id.save_minute);
 
 
@@ -180,7 +182,8 @@ public class LiveStandUpFragment extends Fragment {
         audioMediaRecorder.start();
         stop.setEnabled(true);
 
-        Toast.makeText(getContext(), "Recording started", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getContext(), "Recording started", Toast.LENGTH_SHORT).show();
+        audioStatus.setText("Recording started");
 
         return audiofile;
     }
@@ -189,7 +192,8 @@ public class LiveStandUpFragment extends Fragment {
         audioMediaRecorder.stop();
         audioMediaRecorder.reset();
         stop.setEnabled(false);
-        Toast.makeText(getContext(), "Audio Recorder stopped", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getContext(), "Audio Recorder stopped", Toast.LENGTH_SHORT).show();
+        audioStatus.setText("Audio Recorder stopped");
         uploadFile();
     }
 
@@ -229,6 +233,7 @@ public class LiveStandUpFragment extends Fragment {
         minute.setDate(Utils.getFormattedDate(today));
         minute.setHour(Utils.getFormattedHour(today));
         minute.setUserUpdate(audioMap);
+        minute.setTeam("Super Team");
 
         minuteDbReference.child("team_minutes").push().setValue(minute);
     }
