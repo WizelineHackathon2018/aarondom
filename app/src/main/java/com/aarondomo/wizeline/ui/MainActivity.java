@@ -1,11 +1,13 @@
 package com.aarondomo.wizeline.ui;
 
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -23,13 +25,22 @@ import com.aarondomo.wizeline.ui.fragments.LiveStandUpFragment;
 import com.aarondomo.wizeline.ui.fragments.NewTeamFragment;
 import com.aarondomo.wizeline.ui.fragments.RegisterUserFragment;
 
+import java.util.Locale;
+
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener,
+        TextToSpeech.OnInitListener, LiveStandUpFragment.OnSpeakOut {
 
     private Toolbar toolbar;
     private FrameLayout fragmentContainer;
     private int fragmentContainerId;
     private FragmentManager fragmentManager;
+
+    private TextToSpeech textToSpeech;
+
+    public TextToSpeech getTextToSpeech() {
+        return textToSpeech;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +56,9 @@ public class MainActivity extends AppCompatActivity
         setUpFragmentContainter();
 
         displayNewFragment(new HomeFragment());
+
+        //Text to speech
+        textToSpeech = new TextToSpeech(getApplicationContext(), this);
 
     }
 
@@ -138,5 +152,37 @@ public class MainActivity extends AppCompatActivity
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(fragmentContainerId, fragment);
         fragmentTransaction.commit();
+    }
+
+    @Override
+    public void onInit(int status) {
+        if (status == TextToSpeech.SUCCESS) {
+            Locale locale = new Locale("es_419");
+            int result = textToSpeech.setLanguage(locale);
+
+            textToSpeech.setSpeechRate(1.2f);
+
+            if (result == TextToSpeech.LANG_MISSING_DATA
+                    || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("TTS", "Language is not supported");
+            }
+        } else {
+            Log.e("TTS", "Initilization Failed");
+        }
+    }
+
+
+    @Override
+    public void onSpeak(String speech) {
+        textToSpeech.speak(speech, TextToSpeech.QUEUE_FLUSH, null, "");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
     }
 }
