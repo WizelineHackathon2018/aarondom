@@ -1,11 +1,13 @@
 package com.aarondomo.wizeline.ui;
 
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -16,6 +18,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import com.aarondomo.wizeline.R;
 import com.aarondomo.wizeline.ui.fragments.HomeFragment;
@@ -23,13 +26,22 @@ import com.aarondomo.wizeline.ui.fragments.LiveStandUpFragment;
 import com.aarondomo.wizeline.ui.fragments.NewTeamFragment;
 import com.aarondomo.wizeline.ui.fragments.RegisterUserFragment;
 
+import java.util.Locale;
+
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener,
+        TextToSpeech.OnInitListener, OnSpeakOut {
 
     private Toolbar toolbar;
     private FrameLayout fragmentContainer;
     private int fragmentContainerId;
     private FragmentManager fragmentManager;
+
+    private TextToSpeech textToSpeech;
+
+    public TextToSpeech getTextToSpeech() {
+        return textToSpeech;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,30 +51,22 @@ public class MainActivity extends AppCompatActivity
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        setUpFloatingActionButton();
         setUpNavigationDrawer();
 
         setUpFragmentContainter();
 
         displayNewFragment(new HomeFragment());
 
+        //Text to speech
+        textToSpeech = new TextToSpeech(getApplicationContext(), this);
+
     }
+
 
     private void setUpFragmentContainter(){
         fragmentContainerId = R.id.fragment_container;
         fragmentContainer = findViewById(fragmentContainerId);
         fragmentManager = getSupportFragmentManager();
-    }
-
-    private void setUpFloatingActionButton() {
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
     }
 
     private void setUpNavigationDrawer() {
@@ -138,5 +142,37 @@ public class MainActivity extends AppCompatActivity
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(fragmentContainerId, fragment);
         fragmentTransaction.commit();
+    }
+
+    @Override
+    public void onInit(int status) {
+        if (status == TextToSpeech.SUCCESS) {
+            Locale locale = new Locale("es_419");
+            int result = textToSpeech.setLanguage(locale);
+
+            textToSpeech.setSpeechRate(1.2f);
+
+            if (result == TextToSpeech.LANG_MISSING_DATA
+                    || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("TTS", "Language is not supported");
+            }
+            Log.d("TTS","Text to speech warm and ready!");
+        } else {
+            Log.e("TTS", "Initilization Failed");
+        }
+    }
+
+    @Override
+    public void onSpeak(String speech) {
+        textToSpeech.speak(speech, TextToSpeech.QUEUE_FLUSH, null, "");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
     }
 }
